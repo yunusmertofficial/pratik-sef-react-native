@@ -16,6 +16,7 @@ import { useColorScheme } from "@/components/useColorScheme";
 import { useAuthStore } from "@/store/auth";
 import { MEAL_TYPES } from "@/types/recipe";
 import { Ionicons } from "@expo/vector-icons";
+import { apiFetch } from "@/utils/api";
 
 export default function RecipeDetailScreen() {
   const colorScheme = useColorScheme();
@@ -59,7 +60,7 @@ export default function RecipeDetailScreen() {
       }
     } else if (id && token && api) {
       // Eğer payload yoksa ID'den çek (Tariflerim sayfasından gelince)
-      fetch(`${api}/api/recipe/${id}`, {
+      apiFetch(`${api}/api/recipe/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((r) => r.json())
@@ -142,7 +143,7 @@ export default function RecipeDetailScreen() {
               setLoadingSave(true);
               try {
                 if (isSaved) {
-                  const res = await fetch(`${api}/api/recipe/${data._id}`, {
+                  const res = await apiFetch(`${api}/api/recipe/${data._id}`, {
                     method: "DELETE",
                     headers: { Authorization: `Bearer ${token}` },
                   });
@@ -152,7 +153,7 @@ export default function RecipeDetailScreen() {
                 } else {
                   // Kaydederken ID'yi siliyoruz ki çakışma olmasın (MongoDB kendi ID verir)
                   const { _id, id, ...recipeData } = data;
-                  const res = await fetch(`${api}/api/save-recipe`, {
+                  const res = await apiFetch(`${api}/api/save-recipe`, {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
@@ -207,7 +208,7 @@ export default function RecipeDetailScreen() {
                 const meal = MEAL_TYPES.find((m) => m.title === data.mealType);
                 const mealTypeId = meal ? meal.id : MEAL_TYPES[0].id;
 
-                const res = await fetch(`${api}/api/generate-recipe`, {
+                const res = await apiFetch(`${api}/api/generate-recipe`, {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",

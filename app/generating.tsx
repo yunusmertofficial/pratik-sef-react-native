@@ -5,6 +5,7 @@ import { useLocalSearchParams, Stack, useRouter } from 'expo-router'
 import { useAuthStore } from '@/store/auth'
 import Colors from '@/constants/Colors'
 import { useColorScheme } from '@/components/useColorScheme'
+import { apiFetch } from '@/utils/api'
 
 export default function GeneratingScreen() {
   const colorScheme = useColorScheme()
@@ -30,7 +31,7 @@ export default function GeneratingScreen() {
       setLoading(true)
       setApiError(null)
       try {
-        const res = await fetch(`${api}/api/generate-recipe`, {
+        const res = await apiFetch(`${api}/api/generate-recipe`, {
           method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify({ ingredients, mealTypeId, isAlternative: alt })
         })

@@ -8,6 +8,7 @@ import Colors from '@/constants/Colors'
 import { useColorScheme } from '@/components/useColorScheme'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import { apiFetch } from '@/utils/api'
 
 export default function WizardScreen() {
   const { token } = useAuthStore()
@@ -32,7 +33,7 @@ export default function WizardScreen() {
     setApiError(null)
     setGenerating(true)
     try {
-      const res = await fetch(`${api}/api/generate-recipe`, {
+      const res = await apiFetch(`${api}/api/generate-recipe`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ ingredients, mealTypeId, isAlternative })
       })

@@ -16,6 +16,7 @@ import { useColorScheme } from "@/components/useColorScheme";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
+import { apiFetch } from "@/utils/api";
 
 type RecipeItem = {
   _id: string;
@@ -50,7 +51,7 @@ export default function MyRecipesScreen() {
     try {
       const skip = initial ? 0 : itemsRef.current.length;
       console.log(`[MyRecipes] fetch start initial=${initial} skip=${skip} limit=${PAGE_SIZE}`);
-      const res = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/my-recipes?limit=${PAGE_SIZE}&skip=${skip}` , { headers: { Authorization: `Bearer ${token}` } });
+      const res = await apiFetch(`${process.env.EXPO_PUBLIC_API_URL}/api/my-recipes?limit=${PAGE_SIZE}&skip=${skip}` , { headers: { Authorization: `Bearer ${token}` } });
       const ct = res.headers.get("content-type") || "";
       if (!res.ok || !ct.includes("application/json")) throw new Error("Fetch failed");
       const j = await res.json();
@@ -142,7 +143,7 @@ export default function MyRecipesScreen() {
                 { text: "İptal", style: "cancel" },
                 { text: "Sil", style: "destructive", onPress: async () => {
                   try {
-                    await fetch(`${process.env.EXPO_PUBLIC_API_URL}/api/recipe/${r._id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+                    await apiFetch(`${process.env.EXPO_PUBLIC_API_URL}/api/recipe/${r._id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
                     setItems((prev) => prev.filter((x) => x._id !== r._id));
                   } catch {}
                 } }
