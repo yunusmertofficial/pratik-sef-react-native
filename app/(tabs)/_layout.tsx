@@ -1,57 +1,97 @@
-import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
+import React from "react";
+import { Tabs, useRouter } from "expo-router";
+import { TouchableOpacity, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Redirect } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import Colors from "@/constants/Colors";
+import { useColorScheme } from "@/components/useColorScheme";
+import { useClientOnlyValue } from "@/components/useClientOnlyValue";
+import { useAuthStore } from "@/store/auth";
 
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
+  name: React.ComponentProps<typeof Ionicons>["name"];
   color: string;
+  focused: boolean;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return <Ionicons size={24} name={props.name} color={props.color} />;
 }
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { token, logout } = useAuthStore();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  if (!token) {
+    return <Redirect href="/" />;
+  }
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        tabBarActiveTintColor: Colors[colorScheme ?? "light"].primary,
+        tabBarInactiveTintColor: Colors[colorScheme ?? "light"].textLight,
+        tabBarStyle: {
+          backgroundColor: Colors[colorScheme ?? "light"].surface,
+          borderTopWidth: 1,
+          borderTopColor: Colors[colorScheme ?? "light"].border,
+          minHeight: Platform.OS === "android" ? 60 : 80,
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom, Platform.OS === "android" ? 12 : 20),
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "600",
+        },
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: Colors[colorScheme ?? "light"].surface,
+        },
+        headerTintColor: Colors[colorScheme ?? "light"].text,
+        headerTitleStyle: { fontWeight: "800" },
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={() => {
+              logout();
+              router.replace("/");
+            }}
+            style={{ paddingHorizontal: 12 }}
+          >
+            <Ionicons
+              name="log-out-outline"
+              size={22}
+              color={Colors[colorScheme ?? "light"].text}
+            />
+          </TouchableOpacity>
+        ),
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="wizard"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+          title: "Pratik Şef",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "sparkles" : "sparkles-outline"}
+              color={color}
+              focused={focused}
+            />
           ),
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="my-recipes"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: "Tariflerim",
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "book" : "book-outline"}
+              color={color}
+              focused={focused}
+            />
+          ),
         }}
       />
     </Tabs>

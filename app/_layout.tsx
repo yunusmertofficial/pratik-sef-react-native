@@ -4,6 +4,8 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuthStore } from '@/store/auth';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
@@ -47,10 +49,23 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { setSession } = useAuthStore();
+
+  useEffect(() => {
+    AsyncStorage.getItem('session').then(val => {
+      if (val) {
+        try {
+          const parsed = JSON.parse(val);
+          if (parsed?.token && parsed?.user) setSession(parsed.token, parsed.user);
+        } catch {}
+      }
+    }).catch(() => {})
+  }, [])
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
