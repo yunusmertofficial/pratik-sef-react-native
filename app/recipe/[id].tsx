@@ -35,6 +35,8 @@ export default function RecipeDetailScreen() {
   const [imgLoading, setImgLoading] = useState(true);
   // Resim yüklenmezse fallback (yedek) resim göstermek için state
   const [imgError, setImgError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 5; // Pollinations.ai yavaş, daha fazla retry
 
   const id = typeof params.id === "string" ? params.id : "";
   const payloadRaw = typeof params.payload === "string" ? params.payload : "";
@@ -109,6 +111,7 @@ export default function RecipeDetailScreen() {
               </View>
             )}
             <Image
+              key={`${data.imageUrl}-${retryCount}`} // Retry için key değiştir
               // Eğer hata varsa veya URL bozuksa varsayılan resim göster
               source={
                 imgError
@@ -122,12 +125,54 @@ export default function RecipeDetailScreen() {
               cachePolicy="disk"
               contentFit="cover"
               transition={250}
-              onLoadStart={() => setImgLoading(true)}
-              onLoad={() => setImgLoading(false)}
-              onError={(e) => {
-                console.log("Resim Yükleme Hatası:", e);
+              onLoadStart={() => {
+                setImgLoading(true);
+                setImgError(false);
+              }}
+              onLoad={() => {
+                console.log("✅ [RecipeDetail] Resim başarıyla yüklendi");
                 setImgLoading(false);
-                setImgError(true); // Hata durumunu işaretle
+                setImgError(false);
+                setRetryCount(0); // Başarılı olunca retry sayacını sıfırla
+              }}
+              onError={(e: any) => {
+                const errorStr = JSON.stringify(e);
+                const isTimeout =
+                  errorStr.includes("timeout") || errorStr.includes("Timeout");
+
+                console.log("⚠️ [RecipeDetail] Resim Yükleme Hatası:", {
+                  isTimeout,
+                  retryCount,
+                  maxRetries: MAX_RETRIES,
+                });
+
+                // Timeout hatası ve retry hakkı varsa tekrar dene
+                if (isTimeout && retryCount < MAX_RETRIES) {
+                  const newRetryCount = retryCount + 1;
+                  console.log(
+                    `🔄 [RecipeDetail] Timeout hatası, ${newRetryCount}/${MAX_RETRIES} tekrar deneniyor...`
+                  );
+                  setRetryCount(newRetryCount);
+
+                  // 3 saniye bekle ve resmi tekrar yükle (key değiştirerek)
+                  setTimeout(() => {
+                    setImgLoading(true);
+                    setImgError(false);
+                  }, 3000);
+                } else {
+                  // Maksimum retry'den sonra hata göster
+                  if (retryCount >= MAX_RETRIES) {
+                    console.warn(
+                      "⚠️ [RecipeDetail] Maksimum retry sayısına ulaşıldı"
+                    );
+                    setImgLoading(false);
+                    setImgError(true);
+                  } else {
+                    // Timeout değilse direkt hata göster
+                    setImgLoading(false);
+                    setImgError(true);
+                  }
+                }
               }}
             />
           </View>
